@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
+
+<html>
+<head>
+	<title>Cross-Browser Rich Text Editor</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+	<script language="JavaScript" type="text/javascript" src="inb-rte.js"></script>
+	<style>
+	  .message {
+	    width: 6in;
+	    border: 1px dotted silver;
+	    padding: 4px;
+	  }
+	</style>
+</head>
+<body>
+
+<script>
+//<!--
+//Usage: initRTE(imagesPath, includesPath, cssFile)
+initRTE("images/", "", "");
+
+//Usage: writeRichText(fieldname, html, width, height, buttons, readOnly)
+// writeRichText('rte1', 'here&#39;s the "<em>preloaded</em> <b>content</b>"', 400, 200, true, false);
+//-->
+</script>
+
+<h1>Inline RTE Activation</h1>
+
+<div id="editor_toolbar" style="width: 4in;"></div>
+
+<div class="message">
+  <div class="content" id="content1234">
+    <h2>Hello</h2>
+    My name is Earl.
+  </div>
+
+  <div style="text-align:right"> 
+    <button OnMouseUp="Edit('content1234')">Edit</button>
+    <button OnMouseUp="UnEdit('content1234')">Revert</button>
+    <button OnMouseUp="Apply('content1234')">Apply</button>
+    <button OnMouseUp="Reply()">Reply</button>
+  </div>
+
+
+</div>
+
+</body>
+</html>
