@@ -18,6 +18,171 @@ var imagesPath;
 var includesPath;
 var cssFile;
 
+/* RTE as an object */
+function Editor( elementID )
+{
+  this.id = "edit" + elementID;
+
+  this.imgpath = "images/";
+  this.csspath = "css/";
+
+  var ua = navigator.userAgent.toLowerCase();
+  this.isIE = ((ua.indexOf("msie") != -1) && (ua.indexOf("opera") == -1) && (ua.indexOf("webtv") == -1)); 
+  this.isGecko = (ua.indexOf("gecko") != -1);
+  this.isSafari = (ua.indexOf("safari") != -1);
+  this.isKonqueror = (ua.indexOf("konqueror") != -1);
+
+  this.isRichText  = true;
+  this.readOnly    = false;
+
+  var o = document.getElementById( elementID );
+  if ( !o ){
+    return null;
+  }
+  this.container = o;
+  this.width = o.clientWidth;
+  this.height = o.clientHeight + 32;
+  this.original_content = o.innerHTML;
+
+  if (this.isIE) {
+    document.onmouseover = raiseButton;
+    document.onmouseout  = normalButton;
+    document.onmousedown = lowerButton;
+    document.onmouseup   = raiseButton;
+  }
+
+  // methods
+  this.Toolbar = Tools;
+  this.Edit    = Edit;
+  this.Design  = Design;
+  this.Cancel  = Cancel;
+
+  this.Buttons = Buttons;
+
+  this.Buttons();
+
+}
+
+function Buttons()
+{
+
+  var div = document.createElement("div");
+  div.style.textAlign = "right";
+  var edbtn = document.createElement("button");
+  var edbtntxt = document.createTextNode("Edit");
+  edbtn.appendChild( edbtntxt );
+  var x = this;
+  edbtn.onmouseup = function() { x.Edit(); } ;
+  div.appendChild( edbtn );
+
+  this.container.parentNode.appendChild( div );
+
+  this.buttoncontainer = div;
+
+  return this;
+}
+
+function Tools() {
+
+}
+
+function Cancel() {
+
+  this.container.innerHTML = this.original_content;
+
+}
+
+function Edit(buttons) {
+  var editor_html = "";
+  if (this.isRichText) {
+    if (this.readOnly) buttons = false;
+
+    editor_html += '<div class="rteDiv" id="editor' + this.id + '">';
+    editor_html += '<iframe id="' + this.id + '" name="' + this.id 
+        + '" width="' + this.width + 'px" height="' + this.height 
+        + 'px" src="' + this.csspath + 'blank.htm" scrolling="no" frameborder="0"></iframe>';
+
+    editor_html += '<iframe width="154" height="104" id="cp' + this.id
+        + '" src="' + this.csspath + 'palette.htm" marginwidth="0" marginheight="0" '
+        + 'scrolling="no" style="visibility:hidden; position: absolute;"></iframe>';
+    editor_html += '</div>';
+
+
+  } else {
+    var rostring = "";
+    if ( this.readOnly == true ){
+      rostring = "readonly='1'";
+    }
+
+    editor_html += '<textarea name="' + this.id + '" id="' + this.id + '" style="width: ' 
+      + this.width + 'px; height: ' + this.height + 'px;" ' + rostring + '>' 
+      + this.original_content + '</textarea>';
+  }
+
+
+  this.container.innerHTML = editor_html;
+
+  this.Design();
+
+
+  return;
+}
+
+function Design()
+{
+  enableDesign( this.id, this.original_content, this.readOnly, this.isGecko );
+  setTimeout( 'autogrow_iframe("'+ this.id +'");', 60 );
+}
+
+function enableDesign( id, content, readOnly, isGecko ) {
+  var content = unescape( content );
+  var frameHtml = "<html id=\"" + id + "\">\n";
+  frameHtml += "<head><style>";
+  frameHtml += "body {\n";
+  frameHtml += "	background: #dedeff;\n";
+  frameHtml += "	margin: 0px;\n";
+  frameHtml += "	padding: 3px;\n";
+  frameHtml += "}\n";
+  frameHtml += "</style></head>";
+  frameHtml += "<body>";
+  frameHtml += content;
+  frameHtml += "</body></html>";
+
+  if (document.all) {
+    var oRTE = frames[id].document;
+    oRTE.open();
+    oRTE.write(frameHtml);
+    oRTE.close();
+    if (!readOnly) oRTE.designMode = "On";
+  } else {
+    try {
+      if (!readOnly) document.getElementById(id).contentDocument.designMode = "on";
+      try {
+        var oRTE = document.getElementById(id).contentWindow.document;
+        oRTE.open();
+        oRTE.write(frameHtml);
+        oRTE.close();
+        if (isGecko && !readOnly) {
+          //attach a keyboard handler for gecko browsers to make keyboard shortcuts work
+          oRTE.addEventListener("keypress", kb_handler, true);
+        }
+      } catch (e) {
+        alert("Error preloading content.");
+      }
+    } catch (e) {
+      //gecko may take some time to enable design mode.
+      //Keep looping until able to set.
+      if (isGecko) {
+        var str = "enableDesign('"+ id + "','" + escape(content) + "');";
+        setTimeout(str, 10);
+      } else {
+        return false;
+      }
+    }
+  }
+}
+
+
 // this only exists because i could only be bothered to do search and replace for the document.write stuff
 function StringX( add )
 {
@@ -86,7 +251,7 @@ function grab()
   rng.insertNode( box ); 
 
 }
-
+/*
 function Reply()
 {
   grab();
@@ -140,6 +305,8 @@ function Edit( containerID )
 
 }
 
+*/
+
 function autogrow_iframe( ifid )
 {
   var ele = document.getElementById( ifid );
@@ -149,38 +316,7 @@ function autogrow_iframe( ifid )
   setTimeout( 'autogrow_iframe("' + ifid + '");', 15 );
 }
 
-
-function writeRichText(rte, html, width, height, buttons, readOnly) {
-        var editor_html = "";
-	if (isRichText) {
-		if (allRTEs.length > 0) allRTEs += ";";
-		allRTEs += rte;
-		
-		if (readOnly) buttons = false;
-		
-		editor_html += StringX('<div class="rteDiv" id="editor_'+rte+'">');
-		
-		editor_html += StringX('<iframe id="' + rte + '" name="' + rte 
-                                              + '" width="' + width + 'px" height="' + height 
-                                              + 'px" src="' + includesPath + 'blank.htm" scrolling="no" frameborder="0"></iframe>');
-		editor_html += StringX('<iframe width="154" height="104" id="cp' + rte + '" src="' + includesPath + 'palette.htm" marginwidth="0" marginheight="0" scrolling="no" style="visibility:hidden; position: absolute;"></iframe>');
-
-
-//                editor_html += StringX( "<input type='hidden' name='"+rte+"' id='hdn"+rte+"' value='"+ escape(html) +"' />");		
-
-		editor_html += StringX('</div>');
-		// enableDesignMode(rte, escape(html), readOnly);
-	} else {
-		if (!readOnly) {
-			editor_html += StringX('<textarea name="' + rte + '" id="' + rte + '" style="width: ' + width + 'px; height: ' + height + 'px;">' + html + '</textarea>');
-		} else {
-			editor_html += StringX('<textarea name="' + rte + '" id="' + rte + '" style="width: ' + width + 'px; height: ' + height + 'px;" readonly>' + html + '</textarea>');
-		}
-	}
-
-        return editor_html;
-}
-
+/* tidy this up */
 function editorTools( rte, buttons )
 {
   var editor_html = "";
@@ -191,15 +327,14 @@ function editorTools( rte, buttons )
 			editor_html += StringX('		<td>');
 			editor_html += StringX('			<select id="formatblock_' + rte + '" onchange="selectFont(\'' + rte + '\', this.id);">');
 			editor_html += StringX('				<option value="">[Style]</option>');
-			editor_html += StringX('				<option value="<p>">Paragraph &lt;p&gt;</option>');
-			editor_html += StringX('				<option value="<h1>">Heading 1 &lt;h1&gt;</option>');
-			editor_html += StringX('				<option value="<h2>">Heading 2 &lt;h2&gt;</option>');
-			editor_html += StringX('				<option value="<h3>">Heading 3 &lt;h3&gt;</option>');
-			editor_html += StringX('				<option value="<h4>">Heading 4 &lt;h4&gt;</option>');
-			editor_html += StringX('				<option value="<h5>">Heading 5 &lt;h5&gt;</option>');
-			editor_html += StringX('				<option value="<h6>">Heading 6 &lt;h6&gt;</option>');
-			editor_html += StringX('				<option value="<address>">Address &lt;ADDR&gt;</option>');
-			editor_html += StringX('				<option value="<pre>">Formatted &lt;pre&gt;</option>');
+			editor_html += StringX('				<option value="<p>">Normal</option>');
+			editor_html += StringX('				<option value="<h1>">Heading 1</option>');
+			editor_html += StringX('				<option value="<h2>">Heading 2</option>');
+			editor_html += StringX('				<option value="<h3>">Heading 3</option>');
+			editor_html += StringX('				<option value="<h4>">Heading 4</option>');
+			editor_html += StringX('				<option value="<h5>">Heading 5</option>');
+			editor_html += StringX('				<option value="<h6>">Heading 6</option>');
+			editor_html += StringX('				<option value="<pre>">Verbatim</option>');
 			editor_html += StringX('			</select>');
 			editor_html += StringX('		</td>');
 			editor_html += StringX('		<td>');
@@ -265,62 +400,8 @@ function editorTools( rte, buttons )
 		return editor_html;
 }
 
-function enableDesignMode(rte, html, readOnly) {
 
-        html = unescape(html);
-	var frameHtml = "<html id=\"" + rte + "\">\n";
-	frameHtml += "<head>\n";
-	//to reference your stylesheet, set href property below to your stylesheet path and uncomment
-	if (cssFile.length > 0) {
-		frameHtml += "<link media=\"all\" type=\"text/css\" href=\"" + cssFile + "\" rel=\"stylesheet\">\n";
-	} else {
-		frameHtml += "<style>\n";
-		frameHtml += "body {\n";
-		frameHtml += "	background: #FFFFFF;\n";
-		frameHtml += "	margin: 0px;\n";
-		frameHtml += "	padding: 0px;\n";
-		frameHtml += "}\n";
-		frameHtml += "</style>\n";
-	}
-	frameHtml += "</head>\n";
-	frameHtml += "<body>\n";
-	frameHtml += html + "\n";
-	frameHtml += "</body>\n";
-	frameHtml += "</html>";
-	
-	if (document.all) {
-		var oRTE = frames[rte].document;
-		oRTE.open();
-		oRTE.write(frameHtml);
-		oRTE.close();
-		if (!readOnly) oRTE.designMode = "On";
-	} else {
-		try {
-			if (!readOnly) document.getElementById(rte).contentDocument.designMode = "on";
-			try {
-				var oRTE = document.getElementById(rte).contentWindow.document;
-				oRTE.open();
-				oRTE.write(frameHtml);
-				oRTE.close();
-				if (isGecko && !readOnly) {
-					//attach a keyboard handler for gecko browsers to make keyboard shortcuts work
-					oRTE.addEventListener("keypress", kb_handler, true);
-				}
-			} catch (e) {
-				alert("Error preloading content.");
-			}
-		} catch (e) {
-			//gecko may take some time to enable design mode.
-			//Keep looping until able to set.
-			if (isGecko) {
-                                var str = "enableDesignMode('" + rte + "', '" + escape(html) + "', " + readOnly + ");";
-				setTimeout(str, 10);
-			} else {
-				return false;
-			}
-		}
-	}
-}
+/* original functions */
 
 function updateRTEs() {
 	var vRTEs = allRTEs.split(";");

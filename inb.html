@@ -15,16 +15,6 @@
 </head>
 <body>
 
-<script>
-//<!--
-//Usage: initRTE(imagesPath, includesPath, cssFile)
-initRTE("images/", "", "");
-
-//Usage: writeRichText(fieldname, html, width, height, buttons, readOnly)
-// writeRichText('rte1', 'here&#39;s the "<em>preloaded</em> <b>content</b>"', 400, 200, true, false);
-//-->
-</script>
-
 <h1>Inline RTE Activation</h1>
 
 <div id="editor_toolbar" style="width: 4in;"></div>
@@ -34,16 +24,10 @@ initRTE("images/", "", "");
     <h2>Hello</h2>
     My name is Earl.
   </div>
+<script type="text/javascript">
+ var editor = new Editor("content1234");
+</script>
 
-  <div style="text-align:right"> 
-    <button OnMouseUp="Edit('content1234')">Edit</button>
-    <button OnMouseUp="UnEdit('content1234')">Revert</button>
-    <button OnMouseUp="Apply('content1234')">Apply</button>
-    <button OnMouseUp="Reply()">Reply</button>
-  </div>
-
-
-</div>
 
 </body>
 </html>
