@@ -1,22 +1,37 @@
+// inb-rte. 2009-06-15 Ian Norton-Badrul
+//
+// This is derived from the 2005-10-02 version of Kevin Roth's RTE.
+//
 // Cross-Browser Rich Text Editor
 // http://www.kevinroth.com/rte/demo.htm
 // Written by Kevin Roth (kevin@NOSPAMkevinroth.com - remove NOSPAM)
 // Visit the support forums at http://www.kevinroth.com/forums/index.php?c=2
 
 //init variables
-var isRichText = false;
 var rng;
 var currentRTE;
 var allRTEs = "";
 
-var isIE;
-var isGecko;
-var isSafari;
-var isKonqueror;
+/* helper/utility functions */
 
-var imagesPath;
-var includesPath;
-var cssFile;
+
+function iframeGrow( iframeID )
+{
+  //find the height of the internal page
+  var the_height=
+    document.getElementById( iframeID ).contentWindow.
+      document.body.scrollHeight;
+
+  //change the height of the iframe
+  document.getElementById( iframeID ).height =  the_height;
+}
+
+function make_button ( labeltxt ){
+  var btn = document.createElement("button");
+  var btntxt = document.createTextNode( labeltxt );
+  btn.appendChild( btntxt );
+  return btn;
+}
 
 /* RTE as an object */
 function Editor( elementID )
@@ -41,7 +56,7 @@ function Editor( elementID )
   }
   this.container = o;
   this.width = o.clientWidth;
-  this.height = o.clientHeight + 32;
+  this.height = o.clientHeight;
   this.original_content = o.innerHTML;
 
   if (this.isIE) {
@@ -56,6 +71,8 @@ function Editor( elementID )
   this.Edit    = Edit;
   this.Design  = Design;
   this.Cancel  = Cancel;
+  this.Update  = Update;
+  this.Save    = Save;
 
   this.Buttons = Buttons;
 
@@ -68,16 +85,29 @@ function Buttons()
 
   var div = document.createElement("div");
   div.style.textAlign = "right";
-  var edbtn = document.createElement("button");
-  var edbtntxt = document.createTextNode("Edit");
-  edbtn.appendChild( edbtntxt );
+
+  // edit button
+  var edbtn = make_button("Edit");
   var x = this;
   edbtn.onmouseup = function() { x.Edit(); } ;
   div.appendChild( edbtn );
 
-  this.container.parentNode.appendChild( div );
+  var canbtn = make_button("Cancel");
+  canbtn.onmouseup = function() { x.Cancel(); }
+  canbtn.style.display = "none";
+  div.appendChild( canbtn );
 
+  var savbtn = make_button("Save");
+  savbtn.onmouseup = function() { x.Save(); }
+  savbtn.style.display = "none";
+  div.appendChild( savbtn );
+
+  this.container.parentNode.appendChild( div );
   this.buttoncontainer = div;
+
+  this.editbutton   = edbtn;
+  this.cancelbutton = canbtn;
+  this.savebutton   = savbtn;
 
   return this;
 }
@@ -86,10 +116,18 @@ function Tools() {
 
 }
 
+function Save()
+{
+  var out = this.Update();
+  alert( out );
+  this.Cancel();
+}
+
 function Cancel() {
-
   this.container.innerHTML = this.original_content;
-
+  this.container.parentNode.style.border = "1px dotted silver";
+  this.editbutton.style.display = "inline";
+  this.cancelbutton.style.display = this.savebutton.style.display = "none";
 }
 
 function Edit(buttons) {
@@ -100,7 +138,7 @@ function Edit(buttons) {
     editor_html += '<div class="rteDiv" id="editor' + this.id + '">';
     editor_html += '<iframe id="' + this.id + '" name="' + this.id 
         + '" width="' + this.width + 'px" height="' + this.height 
-        + 'px" src="' + this.csspath + 'blank.htm" scrolling="no" frameborder="0"></iframe>';
+        + 'px" src="' + this.csspath + 'blank.htm" scrolling="no" style="border:0;margin:0;padding:0;margin-top:0.83em;"></iframe>';
 
     editor_html += '<iframe width="154" height="104" id="cp' + this.id
         + '" src="' + this.csspath + 'palette.htm" marginwidth="0" marginheight="0" '
@@ -121,11 +159,50 @@ function Edit(buttons) {
 
 
   this.container.innerHTML = editor_html;
-
+  this.container.parentNode.style.border = "1px solid silver";
   this.Design();
 
+  this.editbutton.style.display = "none";
+  this.savebutton.style.display = "inline";
+  this.cancelbutton.style.display = "inline";
+
+  setTimeout("document.getElementById('editor"+this.id+"').focus()",100);
 
   return;
+}
+
+
+function Update() {
+	if (!this.isRichText) return;
+	
+	//set message value
+	var output = "";
+	var oRTE = document.getElementById(this.id);
+	var readOnly = false;
+	
+	//check for readOnly mode
+	if (document.all) {
+		if (frames[rte].document.designMode != "On") readOnly = true;
+	} else {
+		if (document.getElementById(this.id).contentDocument.designMode != "on") this.readOnly = true;
+	}
+	
+	if (this.isRichText && !this.readOnly) {
+		if (document.all) {
+		    output = frames[this.id].document.body.innerHTML;
+		} else {
+		    output = oRTE.contentWindow.document.body.innerHTML;
+		}
+		
+		//if there is no content (other than formatting) set value to nothing
+		if (stripHTML(output.replace("&nbsp;", " ")) == "" 
+			&& output.toLowerCase().search("<hr") == -1
+			&& output.toLowerCase().search("<img") == -1) output = "";
+		//fix for gecko
+		if (escape(output.value) == "%3Cbr%3E%0D%0A%0D%0A%0D%0A") output.value = "";
+	}
+
+    return output;
 }
 
 function Design()
@@ -136,15 +213,13 @@ function Design()
 
 function enableDesign( id, content, readOnly, isGecko ) {
   var content = unescape( content );
-  var frameHtml = "<html id=\"" + id + "\">\n";
-  frameHtml += "<head><style>";
+  var frameHtml = "<html id=\"" + id + "\"><head><style>";
   frameHtml += "body {\n";
-  frameHtml += "	background: #dedeff;\n";
-  frameHtml += "	margin: 0px;\n";
-  frameHtml += "	padding: 3px;\n";
+  frameHtml += " background: #dedeff;\n";
+  frameHtml += " margin: 0px;\n";
+  frameHtml += " padding: 3px;\n";
   frameHtml += "}\n";
-  frameHtml += "</style></head>";
-  frameHtml += "<body>";
+  frameHtml += "</style></head><body>";
   frameHtml += content;
   frameHtml += "</body></html>";
 
@@ -188,49 +263,6 @@ function StringX( add )
 {
   return add;
 }
-
-function initRTE(imgPath, incPath, css) {
-	//set browser vars
-	var ua = navigator.userAgent.toLowerCase();
-	isIE = ((ua.indexOf("msie") != -1) && (ua.indexOf("opera") == -1) && (ua.indexOf("webtv") == -1)); 
-	isGecko = (ua.indexOf("gecko") != -1);
-	isSafari = (ua.indexOf("safari") != -1);
-	isKonqueror = (ua.indexOf("konqueror") != -1);
-	
-	//check to see if designMode mode is available
-	if (document.getElementById && document.designMode && !isSafari && !isKonqueror) {
-		isRichText = true;
-	}
-	
-	if (isIE) {
-		document.onmouseover = raiseButton;
-		document.onmouseout  = normalButton;
-		document.onmousedown = lowerButton;
-		document.onmouseup   = raiseButton;
-	}
-	
-	//set paths vars
-	imagesPath = imgPath;
-	includesPath = incPath;
-	cssFile = css;
-	
-	if (isRichText) document.writeln('<style type="text/css">@import "' + includesPath + 'rte.css";</style>');
-	
-	//for testing standard textarea, uncomment the following line
-	//isRichText = false;
-}
-
-function iframeGrow( iframeID )
-{
-  //find the height of the internal page
-  var the_height=
-    document.getElementById( iframeID ).contentWindow.
-      document.body.scrollHeight;
-
-  //change the height of the iframe
-  document.getElementById( iframeID ).height =  the_height;
-}
-
 
 function grab()
 {
@@ -403,6 +435,7 @@ function editorTools( rte, buttons )
 
 /* original functions */
 
+/* TODO - convert to object compatible methods */
 function updateRTEs() {
 	var vRTEs = allRTEs.split(";");
 	for (var i = 0; i < vRTEs.length; i++) {
@@ -410,39 +443,6 @@ function updateRTEs() {
 	}
 }
 
-function updateRTE(rte) {
-	if (!isRichText) return;
-	
-	//set message value
-	var output = "";
-	var oRTE = document.getElementById(rte);
-	var readOnly = false;
-	
-	//check for readOnly mode
-	if (document.all) {
-		if (frames[rte].document.designMode != "On") readOnly = true;
-	} else {
-		if (document.getElementById(rte).contentDocument.designMode != "on") readOnly = true;
-	}
-	
-	if (isRichText && !readOnly) {
-		if (document.all) {
-		    output = frames[rte].document.body.innerHTML;
-		} else {
-		    output = oRTE.contentWindow.document.body.innerHTML;
-		}
-		
-		//if there is no content (other than formatting) set value to nothing
-		if (stripHTML(output.replace("&nbsp;", " ")) == "" 
-			&& output.toLowerCase().search("<hr") == -1
-			&& output.toLowerCase().search("<img") == -1) output = "";
-		//fix for gecko
-		if (escape(output.value) == "%3Cbr%3E%0D%0A%0D%0A%0D%0A") output.value = "";
-	}
-
-    return output;
-
-}
 
 function rteCommand(rte, command, option) {
 	//function to perform command
