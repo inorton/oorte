@@ -1,3 +1,20 @@
+commit 8b14c6bf5aeedf082e732b5b88a63e5707ca0594
+Author: Ian Norton <inb@ncipher.com>
+Date:   Tue Jun 16 08:39:08 2009 +0100
+
+    tidy up
+
+commit e0ba00fe3d938f4c6450fafb5f873c8e99ec7460
+Author: Ian Norton <inb@ncipher.com>
+Date:   Mon Jun 15 09:12:44 2009 +0100
+
+    editor as an object now works
+
+commit 296387d7ef110e41c77b65d78f626c6a716274fa
+Author: Ian Norton <inb@ncipher.com>
+Date:   Sun Jun 14 09:45:39 2009 +0100
+
+    import and hack
 2009-06-13 
  start and populate an rte using the contents of any given document node.
 

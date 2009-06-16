@@ -119,6 +119,7 @@ function Tools() {
 function Save()
 {
   var out = this.Update();
+  this.original_content = out;
   alert( out );
   this.Cancel();
 }

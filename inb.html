@@ -10,6 +10,7 @@
 	    width: 6in;
 	    border: 1px dotted silver;
 	    padding: 4px;
+            margin-bottom: 1em;
 	  }
 
           .content {
@@ -23,15 +24,24 @@
 
 <h1>Inline RTE Activation</h1>
 
-<div id="editor_toolbar" style="width: 4in;"></div>
 
 <div class="message">
   <div class="content" id="content1234">
     <h2>Hello</h2>
     My name is Earl.
   </div>
+</div>
+
+<div class="message">
+  <div class="content" id="abcdefg">
+    <h2>Free (as in) Beer!</h2>
+    Hundreds flock to the local beer festival for free ale.
+  </div>
+</div>
+
 <script type="text/javascript">
- var editor = new Editor("content1234");
+ var editor1 = new Editor("content1234");
+ var editor2 = new Editor("abcdefg");
 </script>
 
 
