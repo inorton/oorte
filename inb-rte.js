@@ -57,7 +57,6 @@ function Editor( elementID )
   this.container = o;
   this.width = o.clientWidth;
   this.height = o.clientHeight;
-  this.original_content = o.innerHTML;
 
   if (this.isIE) {
     document.onmouseover = raiseButton;
@@ -73,8 +72,17 @@ function Editor( elementID )
   this.Cancel  = Cancel;
   this.Update  = Update;
   this.Save    = Save;
+  this.Reply   = Reply;
 
   this.Buttons = Buttons;
+
+  // put the current content in a div, with the buttons underneath in another
+
+  this.editdiv = document.createElement("div");
+  this.editdiv.innerHTML = this.container.innerHTML;
+  this.container.innerHTML = "";
+
+  this.container.appendChild( this.editdiv );
 
   this.Buttons();
 
@@ -102,12 +110,20 @@ function Buttons()
   savbtn.style.display = "none";
   div.appendChild( savbtn );
 
-  this.container.parentNode.appendChild( div );
+  var repbtn = make_button("Reply");
+  repbtn.onmouseup = function() { x.Reply(); }
+  repbtn.style.display = "inline";
+  div.appendChild( repbtn );
+
+
+  this.container.appendChild( div );
+
   this.buttoncontainer = div;
 
   this.editbutton   = edbtn;
   this.cancelbutton = canbtn;
   this.savebutton   = savbtn;
+  this.replybutton  = repbtn;
 
   return this;
 }
@@ -125,7 +141,7 @@ function Save()
 }
 
 function Cancel() {
-  this.container.innerHTML = this.original_content;
+  this.editdiv.innerHTML = this.original_content;
   this.container.parentNode.style.border = "1px dotted silver";
   this.editbutton.style.display = "inline";
   this.cancelbutton.style.display = this.savebutton.style.display = "none";
@@ -133,6 +149,7 @@ function Cancel() {
 
 function Edit(buttons) {
   var editor_html = "";
+  this.original_content = this.editdiv.innerHTML;
   if (this.isRichText) {
     if (this.readOnly) buttons = false;
 
@@ -159,8 +176,8 @@ function Edit(buttons) {
   }
 
 
-  this.container.innerHTML = editor_html;
-  this.container.parentNode.style.border = "1px solid silver";
+  this.editdiv.innerHTML = editor_html;
+  this.container.style.border = "1px solid silver";
   this.Design();
 
   this.editbutton.style.display = "none";
@@ -265,7 +282,7 @@ function StringX( add )
   return add;
 }
 
-function grab()
+function Reply()
 {
   var sel = window.getSelection();
   var rng = sel.getRangeAt(0);
@@ -274,15 +291,20 @@ function grab()
 
   rng.deleteContents();
 
+  var newid = this.id + "_reply";
+
   var box = document.createElement("blockquote");
   box.style.border = "1px dotted silver";
   box.style.padding = "3px";
-  box.setAttribute("id","replybox" );
+  box.setAttribute("id", newid );
 
   box.appendChild( frag );
-
   rng.insertNode( box ); 
 
+  var ret = new Editor( newid );
+  ret.Edit();
+
+  return ret;
 }
 /*
 function Reply()
