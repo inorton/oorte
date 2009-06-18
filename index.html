@@ -13,6 +13,12 @@
             margin-bottom: 1em;
 	  }
 
+          .header {
+            background: silver;
+            color: black;
+            font-size: 2;
+          }
+
           .content {
             padding: 2px;
             margin: 0;
@@ -39,7 +45,24 @@
   </div>
 </div>
 
+<div style="width:2in; height:2em; border:1px solid red; margin-bottom:1em;" id="outputid"></div>
+<div id="output" style="width:4in;height:2in;border:1px solid red">
+</div>
+
 <script type="text/javascript">
+ SetCallback_Save( function (id, content ) { 
+   var output = document.getElementById( "output" );
+
+   var x = document.createElement("div");
+   var y = document.createTextNode( content );
+   x.appendChild(y);
+
+   output.innerHTML = x.innerHTML;
+   var outid  = document.getElementById( "outputid" );
+   outid.innerHTML = id;
+
+  } );
+
  var editor1 = new Editor("content1234");
  var editor2 = new Editor("abcdefg");
 </script>
