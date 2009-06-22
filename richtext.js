@@ -30,8 +30,11 @@ function iframeGrow( iframeID )
 {
   //find the height of the internal page
   var the_height=
-    document.getElementById( iframeID ).contentWindow.
-      document.body.scrollHeight;
+    document.getElementById( iframeID ).contentWindow.document.body.scrollHeight;
+
+  if ( the_height < 30 ){
+    the_height = 30;
+  } 
 
   //change the height of the iframe
   document.getElementById( iframeID ).height = the_height;
@@ -67,7 +70,7 @@ function Editor( elementID )
   }
   this.container = o;
   this.width = o.clientWidth;
-  this.height = o.clientHeight + 32;
+  this.height = o.clientHeight;
 
   if (this.isIE) {
     document.onmouseover = raiseButton;
@@ -172,16 +175,15 @@ function Edit(buttons) {
   this.original_content = this.editdiv.innerHTML;
   if (this.isRichText) {
     if (this.readOnly) buttons = false;
-
-    editor_html += '<div class="rteDiv" id="editor' + this.id + '">';
+    this.editdiv.setAttribute("id","editor"+this.id);
+    this.editdiv.className = "rteDiv";
     editor_html += '<iframe id="' + this.id + '" name="' + this.id 
-        + '" width="' + this.width + 'px" height="' + this.height 
-        + 'px" src="' + this.csspath + 'blank.htm" scrolling="no" style="border:0;margin:0;padding:0;margin-top:0.83em;"></iframe>';
+        + '" width="' + (this.width - 16) + '" height="' + ( this.height )
+        + '" src="' + this.csspath + 'blank.htm" scrolling="no" style="border:0;margin:0;padding:0"></iframe>';
 
     editor_html += '<iframe width="154" height="104" id="cp' + this.id
         + '" src="' + this.csspath + 'palette.htm" marginwidth="0" marginheight="0" '
         + 'scrolling="no" style="visibility:hidden; position: absolute;"></iframe>';
-    editor_html += '</div>';
 
 
   } else {
@@ -195,6 +197,7 @@ function Edit(buttons) {
       + this.original_content + '</textarea>';
   }
 
+  
 
   this.editdiv.innerHTML = editor_html;
   this.container.style.border = "1px solid silver";
@@ -254,8 +257,8 @@ function enableDesign( id, content, readOnly, isGecko ) {
   var frameHtml = "<html id=\"" + id + "\"><head><style>";
   frameHtml += "body {\n";
   frameHtml += " background: #dedeff;\n";
-  frameHtml += " margin: 0px;\n";
-  frameHtml += " padding: 3px;\n";
+  frameHtml += " margin: 0;\n";
+  frameHtml += " padding: 0;\n";
   frameHtml += "}\n";
   frameHtml += "</style></head><body>";
   frameHtml += content;
