@@ -28,27 +28,28 @@
 </head>
 <body>
 
-<h1>Rich Text Editor</h1>
+<h1>OO Rich Text Editor</h1>
 <p>
-This is an adaptation of an early version of <a href="http://www.kevinroth.com/rte/demo.htm">RTE</a> to provide an object oriented interface to a dynamic rich text editing javascript control.
+This OORTE, it is an adaptation of an early version of <a href="http://www.kevinroth.com/rte/demo.htm">RTE</a> to provide an object oriented interface to a dynamic rich text editing javascript control.
 </p>
 <div class="message">
   <div class="content" id="content1234">
     <h2>Hello</h2>
-    My name is Earl.
+    <p>
+    This is an ordinary div element with some html content inside. OORTE (Object Oriented RTE) lets you grab any element on a page and turn it into 
+    a html simple text editor.  
+    </p>
+    <p>
+    You can hook in your own callback javascript function that get called when the user hits save too.
+    </p>
   </div>
 </div>
-
-<div class="message">
-  <div class="content" id="abcdefg">
-    <h2>Free (as in) Beer!</h2>
-    Hundreds flock to the local beer festival for free ale.
-  </div>
-</div>
-
-<div style="width:2in; height:2em; border:1px solid red; margin-bottom:1em;" id="outputid"></div>
+<blockquote>
+<div style="width:4in;border:1px solid red; margin-bottom:1em;" id="outputid"> The example callback puts the id of the editor element in here...</div>
 <div id="output" style="width:4in;height:2in;border:1px solid red">
+... and the HTML output in here.
 </div>
+</blockquote>
 
 <script type="text/javascript">
  SetCallback_Save( function (id, content ) { 
@@ -65,7 +66,6 @@ This is an adaptation of an early version of <a href="http://www.kevinroth.com/r
   } );
 
  var editor1 = new Editor("content1234");
- var editor2 = new Editor("abcdefg");
 </script>
 
 

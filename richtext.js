@@ -131,7 +131,8 @@ function Buttons()
 
   var repbtn = make_button("Reply");
   repbtn.onmouseup = function() { x.Reply(); }
-  repbtn.style.display = "inline";
+  // repbtn.style.display = "inline";
+  repbtn.style.display = "none";
   div.appendChild( repbtn );
 
 
@@ -317,7 +318,6 @@ function Reply()
   var newid = this.id + "_reply";
 
   var box = document.createElement("blockquote");
-  box.style.border = "1px dotted silver";
   box.style.padding = "3px";
   box.setAttribute("id", newid );
 
